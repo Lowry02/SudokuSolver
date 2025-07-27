@@ -193,24 +193,34 @@ class SudokuEnvironment:
   def _sparse_reward(self):
     """Simple win/lose reward: +100 for filled valid, -100 for dead-end."""
     leg = self.get_legal_actions().view(-1, self.size)
-    nonzero_per = (leg.sum(dim=1) > 0).sum().item()
-    empty = int((self.grid == 0).sum().item())
-    lose = (nonzero_per != empty)
-    win = (nonzero_per == 0 and not lose)
+    at_least_one_action_per_cell = (leg.sum(dim=1) > 0).sum().item()
+    n_empty_cells = int((self.grid == 0).sum().item())
+    lose = (at_least_one_action_per_cell != n_empty_cells)
+    win = (at_least_one_action_per_cell == 0 and not lose)
     return win * 100 + lose * -100, (win or lose), win
   
   def _dense_reward(self):
-    n_valid_actions = self.get_legal_actions().reshape(-1, 9)
-    at_least_one_valid_action_per_cell = (n_valid_actions.sum(dim=1) > 0).sum().item() # checks if there is at least one action per empty cell
-    just_one_action_per_cell = (n_valid_actions.sum(dim=1) == 1).sum().item()
-    empty_cells = (self.grid == 0).sum().item()
-    lose = at_least_one_valid_action_per_cell != empty_cells
-    win = at_least_one_valid_action_per_cell == 0 and not lose
-    completed = win or lose
-    reward = (win or not lose) * 81/(n_valid_actions.sum() + (self.grid != 0).sum()) * 10 + \
-              (lose) * -10 + \
-              (just_one_action_per_cell == empty_cells) * 1000
-    return reward, completed, win
+    """Simple win/lose reward: +100 for filled valid, -100 for dead-end."""
+    leg = self.get_legal_actions().view(-1, self.size)
+    at_least_one_action_per_cell = (leg.sum(dim=1) > 0).sum().item()
+    n_empty_cells = int((self.grid == 0).sum().item())
+    lose = (at_least_one_action_per_cell != n_empty_cells)
+    win = (at_least_one_action_per_cell == 0 and not lose)
+    completed = (win or lose)
+    return win * 100 + lose * -100 + (not completed), (win or lose), win
+  
+  # def _dense_reward(self):
+  #   n_valid_actions = self.get_legal_actions().reshape(-1, 9)
+  #   at_least_one_valid_action_per_cell = (n_valid_actions.sum(dim=1) > 0).sum().item() # checks if there is at least one action per empty cell
+  #   just_one_action_per_cell = (n_valid_actions.sum(dim=1) == 1).sum().item()
+  #   empty_cells = (self.grid == 0).sum().item()
+  #   lose = at_least_one_valid_action_per_cell != empty_cells
+  #   win = at_least_one_valid_action_per_cell == 0 and not lose
+  #   completed = win or lose
+  #   reward = (win or not lose) * 81/(n_valid_actions.sum() + (self.grid != 0).sum()) * 10 + \
+  #             (lose) * -10 + \
+  #             (just_one_action_per_cell == empty_cells) * 1000
+  #   return reward, completed, win
 
   def step(self, action):
     """Apply action (0..size^3-1), return grid, reward, done, win, legal_actions."""
