@@ -8,6 +8,7 @@ class SudokuEnvironment:
   """
 
   def __init__(self, with_legal_actions:bool=True, grid=None, size=9, box_height=None, box_width=None):
+    # WRITTEN BY CHATGPT
     """
     Initialize the Sudoku environment.
 
@@ -49,6 +50,7 @@ class SudokuEnvironment:
     self.starting_grid = self.grid.clone()
 
   def load_from_tensor(self, tensor):
+    # WRITTEN BY CHATGPT
     assert isinstance(tensor, torch.Tensor), "Input must be a torch.Tensor."
     assert tensor.numel() == self.size * self.size, \
       f"Tensor must have {self.size*self.size} elements."
@@ -60,6 +62,7 @@ class SudokuEnvironment:
 
   # ----- Puzzle generation -----
   def create_new(self):
+    # WRITTEN BY CHATGPT
     """
     Generate a completely filled, valid Sudoku.
     """
@@ -69,6 +72,7 @@ class SudokuEnvironment:
     return self.grid
 
   def _fill_grid(self):
+    # WRITTEN BY CHATGPT
     for idx in range(self.size * self.size):
       if self.grid[idx] == 0:
         row, col = divmod(idx, self.size)
@@ -84,6 +88,7 @@ class SudokuEnvironment:
     return True
 
   def add_remove_cells(self, num_cells, remove=True):
+    # WRITTEN BY CHATGPT
     """
     Remove or add clues to create a puzzle with a unique solution.
     """
@@ -123,6 +128,7 @@ class SudokuEnvironment:
 
   # ----- Solving and validation -----
   def _count_solutions(self, grid, solutions, limit=2):
+    # WRITTEN BY CHATGPT
     for idx in range(self.size * self.size):
       if grid[idx] == 0:
         row, col = divmod(idx, self.size)
@@ -137,10 +143,12 @@ class SudokuEnvironment:
       return
 
   def solve(self):
+    # WRITTEN BY CHATGPT
     """Backtracking solver."""
     return self._solve_grid()
 
   def _solve_grid(self):
+    # WRITTEN BY CHATGPT
     for idx in range(self.size * self.size):
       if self.grid[idx] == 0:
         row, col = divmod(idx, self.size)
@@ -154,12 +162,14 @@ class SudokuEnvironment:
     return True
 
   def check_insertion(self, row, col, num):
+    # WRITTEN BY CHATGPT
     """True if inserting num at (row,col) is valid."""
     assert 0 <= row < self.size and 0 <= col < self.size
     assert 1 <= num <= self.size
     return self._is_valid_cell(self.grid, row, col, num)
 
   def _is_valid_cell(self, grid, row, col, num):
+    # WRITTEN BY CHATGPT
     """Check row, column, and sub-box constraints."""
     if grid[row*self.size + col] != 0:
       return False
@@ -177,6 +187,7 @@ class SudokuEnvironment:
 
   # ----- Action & reward API -----
   def get_legal_actions(self):
+    # WRITTEN BY CHATGPT
     """Returns a flat tensor [size*size*size] of legal 0/1 entries."""
     if self.with_legal_actions: 
       total = self.size * self.size * self.size
@@ -191,7 +202,6 @@ class SudokuEnvironment:
     return torch.ones(self.size * self.size * self.size)
 
   def _sparse_reward(self):
-    """Simple win/lose reward: +100 for filled valid, -100 for dead-end."""
     leg = self.get_legal_actions().view(-1, self.size)
     at_least_one_action_per_cell = (leg.sum(dim=1) > 0).sum().item()
     n_empty_cells = int((self.grid == 0).sum().item())
@@ -200,7 +210,6 @@ class SudokuEnvironment:
     return win * 100 + lose * -100, (win or lose), win
   
   def _dense_reward(self):
-    """Simple win/lose reward: +100 for filled valid, -100 for dead-end."""
     leg = self.get_legal_actions().view(-1, self.size)
     at_least_one_action_per_cell = (leg.sum(dim=1) > 0).sum().item()
     n_empty_cells = int((self.grid == 0).sum().item())
@@ -208,22 +217,8 @@ class SudokuEnvironment:
     win = (at_least_one_action_per_cell == 0 and not lose)
     completed = (win or lose)
     return win * 100 + lose * -100 + (not completed), (win or lose), win
-  
-  # def _dense_reward(self):
-  #   n_valid_actions = self.get_legal_actions().reshape(-1, 9)
-  #   at_least_one_valid_action_per_cell = (n_valid_actions.sum(dim=1) > 0).sum().item() # checks if there is at least one action per empty cell
-  #   just_one_action_per_cell = (n_valid_actions.sum(dim=1) == 1).sum().item()
-  #   empty_cells = (self.grid == 0).sum().item()
-  #   lose = at_least_one_valid_action_per_cell != empty_cells
-  #   win = at_least_one_valid_action_per_cell == 0 and not lose
-  #   completed = win or lose
-  #   reward = (win or not lose) * 81/(n_valid_actions.sum() + (self.grid != 0).sum()) * 10 + \
-  #             (lose) * -10 + \
-  #             (just_one_action_per_cell == empty_cells) * 1000
-  #   return reward, completed, win
 
   def step(self, action):
-    """Apply action (0..size^3-1), return grid, reward, done, win, legal_actions."""
     cell = action // self.size
     row, col = divmod(cell, self.size)
     num = (action % self.size) + 1
@@ -241,6 +236,7 @@ class SudokuEnvironment:
     self.get_reward = self._dense_reward
 
   def __str__(self):
+    # WRITTEN BY CHATGPT
     mat = self.grid.view(self.size, self.size)
     lines = []
     for row in mat:

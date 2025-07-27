@@ -1,3 +1,4 @@
+(WRITTEN BY CHATGPT)
 # Solving Sudoku with Reinforcement Learning
 
 This project explores the use of Reinforcement Learning (RL) to solve Sudoku puzzles. It frames Sudoku as a sequential decision-making problem and applies Deep Q-Learning with a Replay Buffer to approximate optimal policies. The approach includes custom reward shaping, curriculum learning, and a Mixture of Experts architecture to enable efficient learning from smaller boards (6x6) to full Sudoku puzzles (9x9).
